@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /requests/
+Disallow: /ideas/submit
+Disallow: /ideas/my
+Disallow: /ideas/edit/
+Disallow: /ui-kit

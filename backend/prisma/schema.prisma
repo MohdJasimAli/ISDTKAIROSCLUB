@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ISDT Kairos Club — MongoDB schema ─────────────────────────────────────
+// MongoDB has no native enums. Enum-like fields are String; allowed values:
+// (mirror any change here in frontend/src/utils/constants.js)
+//
+// Role:              STUDENT | ADMIN          (future: MENTOR, ISDT_REVIEWER)
+// MembershipStatus:  PENDING | MEMBER | VOLUNTEER | REJECTED
+// IdeaCategory:      WEB_DEVELOPMENT | APP_DEVELOPMENT | AI_ML | DATA_SCIENCE | IOT
+//                    | ROBOTICS | HARDWARE | EMBEDDED_SYSTEMS | CYBERSECURITY | CLOUD
+//                    | AUTOMATION | RESEARCH | SOCIAL_IMPACT | PRODUCT_DEVELOPMENT | OTHER
+// IdeaStage:         JUST_AN_IDEA | RESEARCHING | PROTOTYPE_IN_PROGRESS | MVP_READY | TESTING
+// IdeaStatus:        PENDING_REVIEW | UNDER_REVIEW | APPROVED | CHANGES_REQUESTED | REJECTED
+// ProjectStatus:     IDEA_SUBMITTED | UNDER_REVIEW | APPROVED | TEAM_FORMATION | DEVELOPMENT
+//                    | TESTING | PROTOTYPE_READY | SHOWCASE | CONNECTED_WITH_ISDT | COMPLETED
+// JoinRequestStatus: PENDING | APPROVED | REJECTED
+// MemberRole:        LEAD | MEMBER
+
+model User {
+  id               String   @id @default(uuid()) @map("_id")
+  name             String
+  email            String   @unique
+  passwordHash     String
+  role             String   @default("STUDENT")
+  department       String   @default("")
+  year             String   @default("")
+  phone            String?
+  bio              String?
+  skills           Json     @default("[]")
+  interests        Json     @default("[]")
+  githubUrl        String?
+  linkedinUrl      String?
+  membershipStatus String   @default("PENDING")
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  ideas            Idea[]            @relation("IdeaSubmitter")
+  ledProjects      Project[]         @relation("ProjectLead")
+  memberships      ProjectMember[]
+  projectUpdates   ProjectUpdate[]
+  joinRequests     JoinRequest[]     @relation("Applicant")
+  reviewedRequests JoinRequest[]     @relation("Reviewer")
+  announcements    Announcement[]
+  eventRegs        EventRegistration[]
+
+  @@map("users")
+}
+
+model Idea {
+  id                  String    @id @default(uuid()) @map("_id")
+  title               String
+  category            String
+  problemStatement    String
+  proposedSolution    String
+  expectedImpact      String
+  techStack           Json      @default("[]")
+  requiredSkills      Json      @default("[]")
+  supportNeeded       Json      @default("[]")
+  currentStage        String    @default("JUST_AN_IDEA")
+  hasExistingTeam     Boolean   @default(false)
+  existingTeamMembers String?
+  demoLink            String?
+  status              String    @default("PENDING_REVIEW")
+  reviewerNote        String?
+  isPublic            Boolean   @default(false)
+  viewCount           Int       @default(0)
+  submitterId         String
+  submitter           User      @relation("IdeaSubmitter", fields: [submitterId], references: [id], onDelete: Cascade)
+  project             Project?
+  joinRequests        JoinRequest[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status, isPublic])
+  @@index([category])
+  @@index([submitterId])
+  @@map("ideas")
+}
+
+model Project {
+  id           String    @id @default(uuid()) @map("_id")
+  name         String
+  description  String
+  problem      String
+  solution     String
+  category     String
+  technologies Json      @default("[]")
+  status       String    @default("IDEA_SUBMITTED")
+  progress     Int       @default(0)
+  githubUrl    String?
+  demoUrl      String?
+  images       Json      @default("[]")
+  isFeatured   Boolean   @default(false)
+  leadId       String?
+  lead         User?     @relation("ProjectLead", fields: [leadId], references: [id], onDelete: SetNull)
+  sourceIdeaId String?   @unique
+  sourceIdea   Idea?     @relation(fields: [sourceIdeaId], references: [id], onDelete: SetNull)
+  members      ProjectMember[]
+  updates      ProjectUpdate[]
+  joinRequests JoinRequest[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([category])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid()) @map("_id")
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("MEMBER")
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectUpdate {
+  id        String   @id @default(uuid()) @map("_id")
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  images    Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("project_updates")
+}
+
+model JoinRequest {
+  id            String   @id @default(uuid()) @map("_id")
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ideaId        String?
+  idea          Idea?    @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  applicantId   String
+  applicant     User     @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  message       String
+  skillsOffered Json     @default("[]")
+  status        String   @default("PENDING")
+  reviewedById  String?
+  reviewedBy    User?    @relation("Reviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId, status])
+  @@index([ideaId, status])
+  @@index([applicantId])
+  @@map("join_requests")
+}
+
+model Event {
+  id            String              @id @default(uuid()) @map("_id")
+  title         String
+  slug          String              @unique
+  description   String
+  venue         String?
+  startsAt      DateTime
+  endsAt        DateTime?
+  imageUrl      String?
+  isPublished   Boolean             @default(false)
+  maxSeats      Int?
+  registrations EventRegistration[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(uuid()) @map("_id")
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String
+  email     String
+  phone     String?
+  createdAt DateTime @default(now())
+
+  @@index([eventId])
+  @@map("event_registrations")
+}
+
+model Announcement {
+  id          String    @id @default(uuid()) @map("_id")
+  title       String
+  body        String
+  isPublished Boolean   @default(false)
+  isPinned    Boolean   @default(false)
+  publishedAt DateTime?
+  archivedAt  DateTime?
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("announcements")
+}
+
+model TeamProfile {
+  id          String   @id @default(uuid()) @map("_id")
+  name        String
+  role        String
+  department  String?
+  imageUrl    String?
+  githubUrl   String?
+  linkedinUrl String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("team_profiles")
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid()) @map("_id")
+  name      String
+  email     String
+  subject   String?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}

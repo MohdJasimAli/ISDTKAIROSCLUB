@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  html {
+    min-width: 320px;
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply min-h-screen overflow-x-hidden bg-slate-50 font-sans text-slate-800 antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-slate-900;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :where(h1, h2, h3, h4, p, li) {
+    overflow-wrap: break-word;
+  }
+
+  a {
+    @apply transition-colors duration-200;
+    touch-action: manipulation;
+  }
+
+  button {
+    touch-action: manipulation;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid rgb(99 102 241 / 0.65);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    @apply bg-indigo-100 text-indigo-900;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    min-width: 0;
+  }
+
+  .skip-link {
+    @apply fixed left-4 top-3 z-[100] -translate-y-20 rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-transform;
+  }
+
+  .skip-link:focus {
+    @apply translate-y-0;
+  }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 420px;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  .admin-toolbar {
+    @apply grid grid-cols-1 items-center gap-3;
+  }
+
+  .admin-toolbar > input,
+  .admin-toolbar > select {
+    @apply w-full;
+  }
+
+  @media (min-width: 640px) {
+    .admin-toolbar {
+      @apply flex flex-wrap;
+    }
+
+    .admin-toolbar > input,
+    .admin-toolbar > select {
+      @apply w-auto flex-1;
+      min-width: 10rem;
+    }
+  }
+
+  .safe-modal {
+    padding-right: 1rem;
+    padding-left: 1rem;
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 640px) {
+    .safe-modal {
+      padding-right: 1.5rem;
+      padding-left: 1.5rem;
+      padding-top: max(1.5rem, env(safe-area-inset-top));
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-indigo-600 via-violet-600 to-teal-500 bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transition duration-200 hover:-translate-y-1 hover:shadow-card-hover;
+  }
+}
+
+@media (forced-colors: active) {
+  .text-gradient {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
+@media (hover: none) {
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

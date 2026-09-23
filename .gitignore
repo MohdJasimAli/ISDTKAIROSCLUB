@@ -1,0 +1,41 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+
+# Prisma
+prisma/migrations/
+
+# Local MongoDB data (project replica set, port 27018)
+.mongo-data/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local API smoke-test artifacts and credentials
+/a-login.json
+/ev-*.json
+/mem*.json
+/okpw.json
+/pw.json
+/rv.json
+/s-login.json
+/st.json
+/t*.json
+/tmprev.json
+/unknown.json
+/upd-bad.json
+/weak.json
+/wrong.json
+/t9-*.txt
+
+# Deployment credentials / local tooling
+*.local
+.env.*
+!.env.example
+
