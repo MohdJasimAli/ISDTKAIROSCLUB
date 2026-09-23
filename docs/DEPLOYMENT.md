@@ -31,7 +31,7 @@ The `app.` and `api.` subdomains should share one registrable domain. The backen
    git status
    git commit -m "chore: prepare Kairos Club for deployment"
    git branch -M main
-   git remote add origin https://github.com/<github-user>/<repo-name>.git
+   git remote add origin https://github.com/MohdJasimAli/ISDTKAIROSCLUB.git
    git push -u origin main
    ```
 
