@@ -1,5 +1,7 @@
 # ISDT Kairos Club — Student Idea & Innovation Platform
 
+[![CI](https://github.com/MohdJasimAli/ISDTKAIROSCLUB/actions/workflows/ci.yml/badge.svg)](https://github.com/MohdJasimAli/ISDTKAIROSCLUB/actions/workflows/ci.yml)
+
 Department of Computer Science, Integral University.
 
 ## Project setup
