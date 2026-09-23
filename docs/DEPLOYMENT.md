@@ -126,7 +126,9 @@ The repository includes `render.yaml`, which defines the web service.
 
 ## 5. Domain and DNS setup
 
-Use a domain such as `kairos.club` with these records:
+The target is `isdtkairos.club` with the `app.` and `api.` subdomains. At the time this deployment guide was prepared, the domain did not publish DNS records, so register/activate it at the registrar before adding the provider targets.
+
+Use these records:
 
 | Type | Name | Value |
 |---|---|---|
