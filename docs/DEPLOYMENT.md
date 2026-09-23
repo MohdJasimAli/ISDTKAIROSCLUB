@@ -8,8 +8,8 @@ GitHub
   ├── MongoDB Atlas       → application database
   └── Vercel static site → frontend (React + Vite)
 
-app.example.com  → Vercel frontend
-api.example.com  → Render backend
+app.isdtkairos.club  → Vercel frontend
+api.isdtkairos.club  → Render backend
 ```
 
 The `app.` and `api.` subdomains should share one registrable domain. The backend uses `SameSite=Lax` authentication cookies, so this layout keeps cookies working without weakening cookie security.
@@ -84,7 +84,7 @@ The repository includes `render.yaml`, which defines the web service.
 
    | Variable | Value |
    |---|---|
-   | `FRONTEND_URL` | `https://app.example.com` |
+   | `FRONTEND_URL` | `https://app.isdtkairos.club` |
    | `DATABASE_URL` | Atlas SRV connection string |
    | `JWT_ACCESS_SECRET` | Random value, at least 32 characters |
    | `JWT_REFRESH_SECRET` | A different random value, at least 32 characters |
@@ -94,7 +94,7 @@ The repository includes `render.yaml`, which defines the web service.
 4. Deploy and wait for the health check:
 
    ```text
-   https://api.example.com/api/v1/health
+   https://api.isdtkairos.club/api/v1/health
    ```
 
    A healthy response has HTTP 200 and `data.db: "connected"`.
@@ -113,7 +113,7 @@ The repository includes `render.yaml`, which defines the web service.
 4. Set the frontend environment variable before the production build:
 
    ```text
-   VITE_API_URL=https://api.example.com/api/v1
+   VITE_API_URL=https://api.isdtkairos.club/api/v1
    ```
 
 5. Deploy and verify the generated site. Test at least:
@@ -135,11 +135,11 @@ Use a domain such as `kairos.club` with these records:
 
 Then:
 
-1. Add `app.example.com` to the Vercel project under **Settings → Domains**.
-2. Add `api.example.com` to the Render service under **Settings → Custom Domains**.
+1. Add `app.isdtkairos.club` to the Vercel project under **Settings → Domains**.
+2. Add `api.isdtkairos.club` to the Render service under **Settings → Custom Domains**.
 3. Wait for DNS propagation and TLS certificate issuance.
-4. Set `FRONTEND_URL=https://app.example.com` in Render.
-5. Set `VITE_API_URL=https://api.example.com/api/v1` in Vercel and redeploy.
+4. Set `FRONTEND_URL=https://app.isdtkairos.club` in Render.
+5. Set `VITE_API_URL=https://api.isdtkairos.club/api/v1` in Vercel and redeploy.
 6. Verify the API health endpoint and a browser login from the deployed frontend.
 
 Keep the frontend and API on HTTPS. Do not add a trailing slash to `FRONTEND_URL`; it must exactly match the browser origin used for CORS and cookies.
@@ -181,8 +181,8 @@ npm run db:generate
 After deployment, verify:
 
 ```text
-GET https://api.example.com/api/v1/health → 200
-GET https://app.example.com/             → 200
+GET https://api.isdtkairos.club/api/v1/health → 200
+GET https://app.isdtkairos.club/             → 200
 POST /api/v1/auth/login                  → valid credentials return 200
 ```
 
