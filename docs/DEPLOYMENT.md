@@ -16,7 +16,7 @@ The `app.` and `api.` subdomains should share one registrable domain. The backen
 
 ## 1. Prepare GitHub
 
-1. Create a **private** GitHub repository (recommended because the project contains admin functionality).
+1. Create a **private** GitHub repository (recommended because the project contains admin functionality). If the repository is already public, change it under **Settings → General → Danger Zone → Change visibility** before adding production credentials.
 2. From the project root, verify ignored local files and secrets:
 
    ```powershell
