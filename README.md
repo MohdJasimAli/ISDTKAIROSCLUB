@@ -20,4 +20,6 @@ The frontend includes route-level metadata, Open Graph/structured data, accessib
 
 ## Phase 12 — Deployment
 
-Deployment configuration and the GitHub → MongoDB Atlas → Render → Vercel → domain workflow are documented in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+- [Create the Render Blueprint](https://dashboard.render.com/blueprint/new?repo=https://github.com/MohdJasimAli/ISDTKAIROSCLUB)
+- [Import the frontend into Vercel](https://vercel.com/new/clone?repository-url=https://github.com/MohdJasimAli/ISDTKAIROSCLUB)
+- Full GitHub → MongoDB Atlas → Render → Vercel → `isdtkairos.club` workflow: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
