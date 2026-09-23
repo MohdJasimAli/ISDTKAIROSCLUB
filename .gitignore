@@ -20,13 +20,15 @@ Thumbs.db
 # Local API smoke-test artifacts and credentials
 /a-login.json
 /ev-*.json
-/mem*.json
+/mem-bad.json
+/mem2.json
 /okpw.json
 /pw.json
 /rv.json
 /s-login.json
 /st.json
-/t*.json
+/t1.json
+/t2.json
 /tmprev.json
 /unknown.json
 /upd-bad.json
