@@ -110,7 +110,7 @@ The repository includes `render.yaml`, which defines the web service.
    - Build command: `npm run build`
    - Output directory: `dist`
    - SPA fallback: `index.html`
-4. Set the frontend environment variable before the production build:
+4. The checked-in `frontend/vercel.json` sets the production API URL to `https://api.isdtkairos.club/api/v1`. You may override it in Vercel if the API domain changes:
 
    ```text
    VITE_API_URL=https://api.isdtkairos.club/api/v1

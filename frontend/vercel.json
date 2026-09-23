@@ -2,6 +2,9 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "env": {
+    "VITE_API_URL": "https://api.isdtkairos.club/api/v1"
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
