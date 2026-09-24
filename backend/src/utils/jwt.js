@@ -35,9 +35,9 @@ export function verifyRefreshToken(token) {
 
 // httpOnly cookies: JS can't read tokens (XSS-safe). Refresh token is path-scoped to auth routes.
 export function accessCookieOptions() {
-  return { httpOnly: true, sameSite: 'lax', secure: env.isProd, path: '/', maxAge: toMs(env.jwt.accessExpires) };
+  return { httpOnly: true, sameSite: env.cookieSameSite, secure: env.isProd, path: '/', maxAge: toMs(env.jwt.accessExpires) };
 }
 
 export function refreshCookieOptions() {
-  return { httpOnly: true, sameSite: 'lax', secure: env.isProd, path: '/api/v1/auth', maxAge: toMs(env.jwt.refreshExpires) };
+  return { httpOnly: true, sameSite: env.cookieSameSite, secure: env.isProd, path: '/api/v1/auth', maxAge: toMs(env.jwt.refreshExpires) };
 }

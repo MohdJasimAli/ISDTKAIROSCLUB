@@ -84,12 +84,13 @@ The repository includes `render.yaml`, which defines the web service.
 
    | Variable | Value |
    |---|---|
-   | `FRONTEND_URL` | `https://app.isdtkairos.club` |
+   | `FRONTEND_URL` | `https://app.isdtkairos.club` (comma-separate additional allowed origins if needed) |
+   | `COOKIE_SAME_SITE` | `lax` — correct while `app.`/`api.` share `isdtkairos.club`; `none` only if the frontend is hosted on a different site |
    | `DATABASE_URL` | Atlas SRV connection string |
    | `JWT_ACCESS_SECRET` | Random value, at least 32 characters |
    | `JWT_REFRESH_SECRET` | A different random value, at least 32 characters |
 
-   `NODE_ENV=production`, `HOST=0.0.0.0`, and the token lifetimes are defined by the blueprint.
+   `NODE_ENV=production`, `HOST=0.0.0.0`, and the token lifetimes are defined by the blueprint. The blueprint build uses `npm install --include=dev` because the Prisma CLI lives in `devDependencies` while `NODE_ENV=production` would otherwise skip it.
 
 4. Deploy and wait for the health check:
 
@@ -123,6 +124,36 @@ The repository includes `render.yaml`, which defines the web service.
    - A project/event detail route
 
 `VITE_API_URL` is compiled into the frontend bundle. Redeploy after changing it.
+
+## 4b. Alternative: host the frontend on Render
+
+If you prefer a single provider, add this static site service to `render.yaml`:
+
+```yaml
+  - type: web
+    name: isdt-kairos-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://isdt-kairos-api.onrender.com/api/v1
+```
+
+The rewrite rule is the SPA fallback, so deep links such as `/admin` and `/projects/:id` load `index.html` instead of a 404.
+
+**Cookie caveat (important):** `isdt-kairos-web.onrender.com` and
+`isdt-kairos-api.onrender.com` are different registrable sites, so authentication
+cookies need `COOKIE_SAME_SITE=none` on the API service, and `FRONTEND_URL` must
+be the web service URL. Cross-site cookies are increasingly restricted in some
+browsers, which is why this guide prefers `app.` and `api.` on one custom domain
+with `COOKIE_SAME_SITE=lax`.
 
 ## 5. Domain and DNS setup
 

@@ -3,7 +3,9 @@ services:
     name: isdt-kairos-api
     runtime: node
     rootDir: backend
-    buildCommand: npm install && npm run db:generate
+    # --include=dev: NODE_ENV=production makes npm omit devDependencies, but the
+    # Prisma CLI (needed by db:generate) lives in devDependencies.
+    buildCommand: npm install --include=dev && npm run db:generate
     startCommand: npm start
     healthCheckPath: /api/v1/health
     autoDeploy: true
@@ -14,6 +16,13 @@ services:
         value: 0.0.0.0
       - key: FRONTEND_URL
         value: https://app.isdtkairos.club
+        # If the API must accept more than one origin (custom domain + provider URL),
+        # make it comma-separated:
+        # value: https://app.isdtkairos.club,https://your-app.vercel.app
+      # 'lax' is correct while app./api. share isdtkairos.club.
+      # Use 'none' only when the frontend and API are on different sites.
+      - key: COOKIE_SAME_SITE
+        value: lax
       - key: DATABASE_URL
         sync: false
       - key: JWT_ACCESS_SECRET
