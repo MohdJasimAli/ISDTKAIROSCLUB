@@ -22,6 +22,11 @@ export default function Dashboard() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  // ALL hooks must live above the early return below — React counts hooks per
+  // render, and a conditional return before a hook crashes the whole page.
+  const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
+  const [passwordMsg, setPasswordMsg] = useState({ error: '', success: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -43,9 +48,6 @@ export default function Dashboard() {
   }
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-  const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
-  const [passwordMsg, setPasswordMsg] = useState({ error: '', success: '' });
-  const [changingPassword, setChangingPassword] = useState(false);
   const toggleSkill = (s) =>
     setForm((f) => ({
       ...f,
