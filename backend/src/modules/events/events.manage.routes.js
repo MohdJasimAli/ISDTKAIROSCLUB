@@ -5,6 +5,7 @@ import { validate } from '../../middleware/validate.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { eventSchema, eventUpdateSchema, publishSchema } from '../../validators/admin.validators.js';
 import { uniqueSlug } from '../../utils/slug.js';
+import { env } from '../../config/env.js';
 
 const router = Router();
 const DB_DOWN = 'Database unavailable — check DATABASE_URL and that start-mongo.cmd is running';
@@ -74,7 +75,31 @@ router.patch('/admin/events/:id', requireAuth, ADMIN, validate(eventUpdateSchema
   }
 });
 
-// POST /api/v1/admin/events/:id/publish — publish / unpublish.
+// POST /api/v1/admin/events/reset — wipe ALL boards (ideas, projects,
+// requests, events, announcements, messages). Keeps users and team profiles so
+// nobody loses their account. Blocked in production by default.
+router.post('/admin/events/reset', requireAuth, ADMIN, async (req, res) => {
+  try {
+    if (env.isProd && process.env.ALLOW_ADMIN_RESET !== 'true') {
+      return fail(res, 'Reset is disabled in production. Set ALLOW_ADMIN_RESET=true to enable temporarily.', 403);
+    }
+
+    const summary = {};
+    summary.joinRequests = (await prisma.joinRequest.deleteMany({})).count;
+    summary.projectUpdates = (await prisma.projectUpdate.deleteMany({})).count;
+    summary.projectMembers = (await prisma.projectMember.deleteMany({})).count;
+    summary.projects = (await prisma.project.deleteMany({})).count;
+    summary.ideas = (await prisma.idea.deleteMany({})).count;
+    summary.eventRegistrations = (await prisma.eventRegistration.deleteMany({})).count;
+    summary.events = (await prisma.event.deleteMany({})).count;
+    summary.announcements = (await prisma.announcement.deleteMany({})).count;
+    summary.contactMessages = (await prisma.contactMessage.deleteMany({})).count;
+
+    return ok(res, summary, 'Demo boards wiped. Users and team profiles were kept.');
+  } catch (err) {
+    return dbFail(res, err);
+  }
+});
 router.post('/admin/events/:id/publish', requireAuth, ADMIN, validate(publishSchema), async (req, res) => {
   try {
     const existing = await prisma.event.findUnique({ where: { id: req.params.id }, select: { id: true } });

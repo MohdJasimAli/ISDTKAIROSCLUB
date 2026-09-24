@@ -43,6 +43,9 @@ export default function Dashboard() {
   }
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+  const [password, setPassword] = useState({ current: '', next: '', confirm: '' });
+  const [passwordMsg, setPasswordMsg] = useState({ error: '', success: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
   const toggleSkill = (s) =>
     setForm((f) => ({
       ...f,
@@ -66,6 +69,28 @@ export default function Dashboard() {
       setError(err.userMessage);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function onPasswordChange(e) {
+    e.preventDefault();
+    setPasswordMsg({ error: '', success: '' });
+    if (password.next !== password.confirm) {
+      setPasswordMsg({ error: 'New passwords do not match.', success: '' });
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const res = await client.post('/auth/password', {
+        currentPassword: password.current,
+        newPassword: password.next,
+      });
+      setPasswordMsg({ error: '', success: `${res.data.message} You can log in with your new password.` });
+      setPassword({ current: '', next: '', confirm: '' });
+    } catch (err) {
+      setPasswordMsg({ error: err.userMessage, success: '' });
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -160,6 +185,42 @@ export default function Dashboard() {
               </li>
               <li className="flex items-center justify-between"><span>Event registrations</span><Badge variant="default">Live</Badge></li>
             </ul>
+          </Card>
+          <Card>
+            <h3 className="font-bold">Security</h3>
+            <p className="mt-1 text-sm text-slate-500">Change your account password.</p>
+            <form onSubmit={onPasswordChange} noValidate className="mt-4 space-y-4">
+              {passwordMsg.success && <Alert variant="success">{passwordMsg.success}</Alert>}
+              {passwordMsg.error && <Alert variant="error">{passwordMsg.error}</Alert>}
+              <Field label="Current password" htmlFor="pw-current" required>
+                <Input
+                  id="pw-current"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password.current}
+                  onChange={(e) => setPassword({ ...password, current: e.target.value })}
+                />
+              </Field>
+              <Field label="New password" htmlFor="pw-new" required hint="Min 8 characters, with a letter and a number">
+                <Input
+                  id="pw-new"
+                  type="password"
+                  autoComplete="new-password"
+                  value={password.next}
+                  onChange={(e) => setPassword({ ...password, next: e.target.value })}
+                />
+              </Field>
+              <Field label="Confirm new password" htmlFor="pw-confirm" required>
+                <Input
+                  id="pw-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  value={password.confirm}
+                  onChange={(e) => setPassword({ ...password, confirm: e.target.value })}
+                />
+              </Field>
+              <Button type="submit" size="sm" isLoading={changingPassword}>Change password</Button>
+            </form>
           </Card>
           <Card tone="indigo">
             <h3 className="font-bold">Membership</h3>

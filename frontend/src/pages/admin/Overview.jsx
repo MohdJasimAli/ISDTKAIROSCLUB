@@ -1,18 +1,45 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AdminPage, StatCard, Table, Th } from '../../components/admin/ui.jsx';
 import Badge from '../../components/ui/Badge.jsx';
-import { LoadingState } from '../../components/ui/Spinner.jsx';
+import Button from '../../components/ui/Button.jsx';
 import Alert from '../../components/ui/Alert.jsx';
+import { LoadingState } from '../../components/ui/Spinner.jsx';
+import Modal from '../../components/ui/Modal.jsx';
 import { buttonStyles } from '../../components/ui/Button.jsx';
 import useFetch from '../../hooks/useFetch.js';
+import client from '../../api/client.js';
 
 export default function Overview() {
   const { data: stats, loading, error } = useFetch('/admin/stats');
   const { data: pendingIdeas } = useFetch('/admin/ideas', { status: 'PENDING_REVIEW', limit: 5 });
   const { data: pendingRequests } = useFetch('/admin/requests', { status: 'PENDING', limit: 5 });
 
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetPhrase, setResetPhrase] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
+
   if (loading) return <LoadingState label="Loading dashboard…" />;
   if (error) return <Alert variant="error">{error}</Alert>;
+
+  async function wipeBoards() {
+    setResetting(true);
+    setResetError('');
+    try {
+      const res = await client.post('/admin/events/reset', {});
+      const summary = Object.entries(res.data.data ?? {})
+        .map(([key, count]) => `${key}: ${count}`)
+        .join(', ');
+      setResetMessage(`Boards wiped. ${summary}.`);
+      window.location.reload();
+    } catch (err) {
+      setResetError(err.userMessage);
+    } finally {
+      setResetting(false);
+    }
+  }
 
   const s = stats ?? {};
   const ideas = s.ideas ?? {};
@@ -86,7 +113,42 @@ export default function Overview() {
         <Link to="/admin/events" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>Create an event</Link>
         <Link to="/admin/announcements" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>Post an announcement</Link>
         <Link to="/admin/projects" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>Manage projects</Link>
+        <Button variant="danger" size="sm" onClick={() => { setResetOpen(true); setResetPhrase(''); setResetMessage(''); setResetError(''); }}>
+          Reset demo data…
+        </Button>
       </div>
+
+      <Modal
+        open={resetOpen}
+        onClose={() => setResetOpen(false)}
+        title="Reset demo data"
+        footer={
+          <>
+            <Button variant="secondary" size="sm" onClick={() => setResetOpen(false)}>Cancel</Button>
+            <Button variant="danger" size="sm" isLoading={resetting} disabled={resetPhrase.trim() !== 'RESET'} onClick={wipeBoards}>
+              Wipe boards
+            </Button>
+          </>
+        }
+      >
+        {resetError && <Alert variant="error" className="mb-4">{resetError}</Alert>}
+        {resetMessage && <Alert variant="success" className="mb-4">{resetMessage}</Alert>}
+        <p className="text-sm text-slate-600">
+          This permanently deletes <strong>all ideas, projects, join requests, updates,
+            events, registrations, announcements, and contact messages</strong>.
+        </p>
+        <p className="mt-2 text-sm text-slate-600">
+          Student accounts and team profiles are kept. Type <strong>RESET</strong> to confirm.
+        </p>
+        <input
+          type="text"
+          value={resetPhrase}
+          onChange={(e) => setResetPhrase(e.target.value)}
+          placeholder="Type RESET"
+          aria-label="Type RESET to confirm"
+          className="mt-4 block w-full rounded-xl border-0 bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+        />
+      </Modal>
     </AdminPage>
   );
 }

@@ -5,7 +5,7 @@ import { ok, fail } from '../../utils/ApiResponse.js';
 import { validate } from '../../middleware/validate.js';
 import { authLimiter } from '../../middleware/rateLimiter.js';
 import { requireAuth } from '../../middleware/auth.js';
-import { registerSchema, loginSchema } from '../../validators/auth.validators.js';
+import { registerSchema, loginSchema, changePasswordSchema } from '../../validators/auth.validators.js';
 import { hashPassword, comparePassword } from '../../utils/password.js';
 import {
   signAccessToken, signRefreshToken, verifyRefreshToken,
@@ -100,5 +100,27 @@ router.post('/auth/logout', (req, res) => {
 });
 
 router.get('/auth/me', requireAuth, (req, res) => ok(res, req.user));
+
+// POST /api/v1/auth/password — change password (strict rate limit: secrets at stake).
+router.post('/auth/password', requireAuth, authLimiter, validate(changePasswordSchema), async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: { passwordHash: true } });
+    if (!user) return fail(res, 'Account not found', 401);
+
+    const valid = await comparePassword(req.body.currentPassword, user.passwordHash);
+    if (!valid) return fail(res, 'Current password is incorrect', 401);
+
+    const passwordHash = await hashPassword(req.body.newPassword);
+    await prisma.user.update({ where: { id: req.user.id }, data: { passwordHash } });
+
+    // Invalidate refresh cookies so stolen sessions die with the password change.
+    res.clearCookie(ACCESS_COOKIE, { ...accessCookieOptions(), maxAge: 0 });
+    res.clearCookie(REFRESH_COOKIE, { ...refreshCookieOptions(), maxAge: 0 });
+    return ok(res, null, 'Password changed — please log in again.');
+  } catch (err) {
+    console.error(err);
+    return fail(res, DB_DOWN, 503);
+  }
+});
 
 export default router;

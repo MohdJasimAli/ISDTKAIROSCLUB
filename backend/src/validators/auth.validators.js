@@ -7,14 +7,16 @@ const emailField = z
   .email('Invalid email address')
   .transform((v) => v.toLowerCase());
 
+export const passwordField = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(72)
+  .refine((v) => /[A-Za-z]/.test(v) && /[0-9]/.test(v), 'Include at least one letter and one number');
+
 export const registerSchema = z.object({
   name: z.string().trim().min(2, 'Name is too short').max(100),
   email: emailField,
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(72)
-    .refine((v) => /[A-Za-z]/.test(v) && /[0-9]/.test(v), 'Include at least one letter and one number'),
+  password: passwordField,
   department: z.string().trim().min(1, 'Department is required').max(100),
   year: z.string().trim().min(1, 'Year / semester is required').max(30),
   phone: z.string().trim().max(20).optional(),
@@ -38,3 +40,9 @@ export const updateProfileSchema = z
     linkedinUrl: z.union([z.string().trim().url('Must be a valid URL'), z.literal('')]).nullable().optional(),
   })
   .refine((v) => Object.keys(v).length > 0, { message: 'Nothing to update' });
+
+// POST /auth/password — change your own password (verify current first).
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: passwordField,
+});
