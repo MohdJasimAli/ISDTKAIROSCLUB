@@ -1,4 +1,10 @@
 services:
+  # NOTE: the live backend service was created manually in the dashboard as
+  # "isdtkairosclub" (you can see this name in the service URL). Do not import
+  # this Blueprint while that service exists: a sync matches by name and would
+  # create a duplicate backend service.
+  # The frontend static site (with the /api/* proxy rewrite) is created manually
+  # too — see docs/DEPLOYMENT.md section 4b for the exact fields and rules.
   - type: web
     name: isdt-kairos-api
     runtime: node

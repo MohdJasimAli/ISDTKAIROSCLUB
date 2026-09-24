@@ -125,35 +125,61 @@ The repository includes `render.yaml`, which defines the web service.
 
 `VITE_API_URL` is compiled into the frontend bundle. Redeploy after changing it.
 
-## 4b. Alternative: host the frontend on Render
+## 4b. Alternative: host the frontend on Render (single provider)
 
-If you prefer a single provider, add this static site service to `render.yaml`:
+Instead of Vercel, create a **Static Site** for the frontend and **proxy `/api/*`
+through it** to the backend. Proxying makes the browser see one origin, so auth
+cookies stay first-party (`SameSite=Lax` works in every browser, including Safari)
+and no cross-site CORS is involved.
 
-```yaml
-  - type: web
-    name: isdt-kairos-web
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    autoDeploy: true
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        value: https://isdt-kairos-api.onrender.com/api/v1
-```
+**Dashboard: New + → Static Site**
 
-The rewrite rule is the SPA fallback, so deep links such as `/admin` and `/projects/:id` load `index.html` instead of a 404.
+| Field | Value |
+|---|---|
+| Name | `isdt-kairos-web` |
+| Repository | `MohdJasimAli/ISDTKAIROSCLUB` (branch `main`) |
+| Root Directory | `frontend` |
+| Build Command | `npm install && npm run build` |
+| Publish Directory | `dist` |
 
-**Cookie caveat (important):** `isdt-kairos-web.onrender.com` and
-`isdt-kairos-api.onrender.com` are different registrable sites, so authentication
-cookies need `COOKIE_SAME_SITE=none` on the API service, and `FRONTEND_URL` must
-be the web service URL. Cross-site cookies are increasingly restricted in some
-browsers, which is why this guide prefers `app.` and `api.` on one custom domain
-with `COOKIE_SAME_SITE=lax`.
+**Then → Redirects/Rewrites** (order matters — first match wins):
+
+| Action | Source | Destination |
+|---|---|---|
+| Rewrite | `/api/*` | `https://isdtkairosclub.onrender.com/api/*` |
+| Rewrite | `/*` | `/index.html` |
+
+The first rule proxies API calls to the backend; the second is the SPA fallback so
+deep links (`/admin`, `/projects/:id`) load `index.html`.
+
+**Then → Environment** (build-time):
+
+| Key | Value |
+|---|---|
+| `VITE_API_URL` | `/api/v1` |
+
+A relative value makes the frontend call its own origin, which the first rewrite
+rule forwards to the API.
+
+**Backend service (`isdtkairosclub`) → Environment:**
+
+| Key | Value |
+|---|---|
+| `FRONTEND_URL` | `https://isdt-kairos-web.onrender.com` |
+| `COOKIE_SAME_SITE` | `lax` (unchanged — the proxy keeps requests same-origin) |
+
+**Fallback if API calls fail** (i.e. the proxy does not forward POST bodies), bypass
+it and talk to the API directly:
+
+1. Static Site → Environment: `VITE_API_URL=https://isdtkairosclub.onrender.com/api/v1`, then redeploy.
+2. Backend → Environment: `COOKIE_SAME_SITE=none`, then redeploy.
+3. Note the trade-off: with a direct cross-site API, some browsers (notably Safari)
+   block the authentication cookies. This is why the proxy and the single
+   `app.`/`api.` custom-domain layouts are preferred.
+
+> Do not add this static site to `render.yaml` while `isdtkairosclub` was created
+> manually: a Blueprint sync matches services by name and would create a duplicate
+> backend service.
 
 ## 5. Domain and DNS setup
 
