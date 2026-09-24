@@ -102,6 +102,25 @@ The repository includes `render.yaml`, which defines the web service.
 5. If Render uses a free plan, the service may sleep during low traffic. Use a paid always-on plan for a production launch.
 6. Run `npm run db:push` from a one-off Render shell or trusted local environment before accepting traffic. Run `db:seed` only for the initial administrator.
 
+## 3b. Single-service mode (what is deployed today)
+
+The root `postinstall` builds **both** apps, and the API serves `frontend/dist` when it
+exists, so one Render service hosts everything:
+
+- `GET /` and client-side routes (`/admin`, `/projects/:id`) → the React SPA
+- `GET /api/v1/*` → the JSON API
+- a missing file such as `/missing.js` → 404 JSON (no HTML is returned for asset paths)
+
+Because the site and the API share one origin, authentication cookies are first-party:
+no CORS, no proxy rewrite, and `COOKIE_SAME_SITE=lax` is correct in every browser
+(including Safari). No dashboard configuration beyond the environment variables in
+section 3 is required.
+
+Trade-off: a free instance sleeps after inactivity, so the first visit can take ~50s.
+Deploying the frontend to a CDN (section 4 for Vercel, section 4b for Render Static
+Sites) gives the site an always-on front door; in that layout the API keeps serving
+`/api/v1` only, and `VITE_API_URL` points at it.
+
 ## 4. Deploy the frontend to Vercel
 
 1. In Vercel, import the same GitHub repository.

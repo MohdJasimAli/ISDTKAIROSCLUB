@@ -2,12 +2,12 @@
   "name": "isdt-kairos-club",
   "version": "0.1.0",
   "private": true,
-  "description": "ISDT Kairos Club monorepo root. backend/ and frontend/ deploy as separate services (Render API + Vercel web); these root scripts let Render's default root-level Node build/start reach the backend with zero dashboard edits.",
+  "description": "ISDT Kairos Club monorepo root. backend/ and frontend/ deploy as separate services (Render API + static web), and the API also serves frontend/dist when it is built (`npm install` at the root builds both), giving a zero-config single-service deployment.",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "postinstall": "npm --prefix backend install --include=dev && npm --prefix backend run db:generate",
+    "postinstall": "npm --prefix backend install --include=dev && npm --prefix backend run db:generate && npm --prefix frontend install --include=dev && npm --prefix frontend run build",
     "start": "npm --prefix backend start"
   }
 }

@@ -14,7 +14,7 @@ function dbFail(res, err) {
 }
 
 // Everything below is admin-only.
-router.use(requireAuth, requireRole('ADMIN'));
+router.use('/admin', requireAuth, requireRole('ADMIN'));
 
 // GET /api/v1/admin/stats — dashboard metrics.
 router.get('/admin/stats', async (req, res) => {
